@@ -14,7 +14,7 @@
 
 body{
   margin:0;
-  font-family: "Segoe UI", sans-serif;
+  font-family:"Segoe UI", sans-serif;
   background:var(--beige);
 }
 
@@ -24,43 +24,56 @@ h1{
   margin:20px 0;
 }
 
-.grid{
+.year{
+  margin:20px;
+  padding:15px;
+  border:3px solid var(--midnight);
+  border-radius:16px;
+  background:#fff;
+}
+
+.year h2{
+  color:var(--midnight);
+  margin-bottom:15px;
+}
+
+.year-grid{
   display:grid;
-  grid-template-columns: repeat(10, minmax(180px,1fr));
-  gap:16px;
-  padding:20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap:20px;
 }
 
 .semester{
-  background:white;
   border:2px solid var(--midnight);
   border-radius:12px;
   padding:10px;
 }
 
-.semester h2{
+.semester h3{
   text-align:center;
-  font-size:14px;
   color:var(--midnight);
-  border-bottom:1px solid var(--midnight);
-  padding-bottom:6px;
   margin-bottom:10px;
 }
 
-.course{
-  background:#ffffff;
-  padding:8px;
-  margin-bottom:8px;
-  border-radius:8px;
-  font-size:13px;
-  cursor:pointer;
-  border:1.5px solid var(--midnight);
-  transition:all 0.2s ease;
-  position:relative;
+.courses{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:10px;
 }
 
-.course:hover{
-  background:#eef6f7;
+.course{
+  aspect-ratio:1/1;
+  background:white;
+  border:1.5px solid var(--midnight);
+  border-radius:10px;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:6px;
+  cursor:pointer;
+  position:relative;
 }
 
 .course.approved{
@@ -97,7 +110,7 @@ h1{
 
 <h1>Malla Curricular – Medicina Veterinaria y Zootecnia</h1>
 
-<div class="grid" id="grid"></div>
+<div id="container"></div>
 
 <script>
 const semesters = [
@@ -113,54 +126,63 @@ const semesters = [
 ["Rotación Clínica de Grandes Animales","Rotación Clínica de Pequeños Animales","Rotación en Granjas"]
 ];
 
-const prereq = {};
-semesters.forEach((s,i)=>{
-  if(i>0){
-    s.forEach(c=> prereq[c]=semesters[i-1]);
-  }
-});
-
-const grid=document.getElementById("grid");
-const progress=JSON.parse(localStorage.getItem("mvzProgress")||"{}");
+const progress = JSON.parse(localStorage.getItem("mvzProgress")||"{}");
 
 function save(){
   localStorage.setItem("mvzProgress",JSON.stringify(progress));
 }
 
-function canUnlock(course){
-  if(!prereq[course]) return true;
-  return prereq[course].every(c=>progress[c]);
+const container=document.getElementById("container");
+
+for(let year=0; year<5; year++){
+  const yearDiv=document.createElement("div");
+  yearDiv.className="year";
+  yearDiv.innerHTML=`<h2>Año ${year+1}</h2>`;
+
+  const grid=document.createElement("div");
+  grid.className="year-grid";
+
+  for(let s=0; s<2; s++){
+    const semIndex=year*2+s;
+    const sem=document.createElement("div");
+    sem.className="semester";
+    sem.innerHTML=`<h3>Semestre ${semIndex+1}</h3>`;
+
+    const courses=document.createElement("div");
+    courses.className="courses";
+
+    semesters[semIndex].forEach(course=>{
+      const c=document.createElement("div");
+      c.className="course";
+      c.textContent=course;
+
+      if(progress[course]) c.classList.add("approved");
+
+      if(semIndex>0 && !progress[course]){
+        const prev=semesters[semIndex-1];
+        if(!prev.every(p=>progress[p])){
+          c.classList.add("locked");
+          c.dataset.tooltip="Debe aprobar el semestre anterior";
+        }
+      }
+
+      c.onclick=()=>{
+        if(c.classList.contains("locked")) return;
+        progress[course]=!progress[course];
+        save();
+        location.reload();
+      };
+
+      courses.appendChild(c);
+    });
+
+    sem.appendChild(courses);
+    grid.appendChild(sem);
+  }
+
+  yearDiv.appendChild(grid);
+  container.appendChild(yearDiv);
 }
-
-semesters.forEach((semester,i)=>{
-  const col=document.createElement("div");
-  col.className="semester";
-  col.innerHTML=`<h2>Semestre ${i+1}</h2>`;
-
-  semester.forEach(course=>{
-    const div=document.createElement("div");
-    div.className="course";
-    div.textContent=course;
-
-    if(progress[course]) div.classList.add("approved");
-
-    if(!canUnlock(course) && !progress[course]){
-      div.classList.add("locked");
-      div.dataset.tooltip="Debe aprobar el semestre anterior";
-    }
-
-    div.onclick=()=>{
-      if(div.classList.contains("locked")) return;
-      progress[course]=!progress[course];
-      save();
-      location.reload();
-    };
-
-    col.appendChild(div);
-  });
-
-  grid.appendChild(col);
-});
 </script>
 
 </body>
