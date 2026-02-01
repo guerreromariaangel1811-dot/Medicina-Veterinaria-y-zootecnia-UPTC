@@ -21,57 +21,72 @@ body{
 h1{
   text-align:center;
   color:var(--midnight);
-  margin:20px 0;
+  margin:16px 0;
 }
 
-.year{
-  margin:20px;
-  padding:15px;
-  border:3px solid var(--midnight);
-  border-radius:16px;
-  background:#fff;
-}
-
-.year h2{
-  color:var(--midnight);
-  margin-bottom:15px;
-}
-
-.year-grid{
-  display:grid;
-  grid-template-columns: repeat(2, 1fr);
+/* CONTENEDOR HORIZONTAL */
+.timeline{
+  display:flex;
   gap:20px;
+  padding:20px;
+  overflow-x:auto;
 }
 
-.semester{
-  border:2px solid var(--midnight);
-  border-radius:12px;
+/* AÑO */
+.year{
+  min-width:260px;
+  background:white;
+  border:2.5px solid var(--midnight);
+  border-radius:14px;
   padding:10px;
 }
 
-.semester h3{
+.year h2{
   text-align:center;
   color:var(--midnight);
-  margin-bottom:10px;
+  font-size:15px;
+  margin-bottom:8px;
 }
 
+/* DOS SEMESTRES POR AÑO */
+.year-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+/* SEMESTRE */
+.semester{
+  border:1.5px solid var(--midnight);
+  border-radius:10px;
+  padding:6px;
+}
+
+.semester h3{
+  font-size:12px;
+  text-align:center;
+  color:var(--midnight);
+  margin-bottom:6px;
+}
+
+/* CUADROS */
 .courses{
   display:grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:10px;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
 }
 
 .course{
   aspect-ratio:1/1;
   background:white;
   border:1.5px solid var(--midnight);
-  border-radius:10px;
-  font-size:12px;
+  border-radius:8px;
+  font-size:10.5px;
+  padding:4px;
   display:flex;
   align-items:center;
   justify-content:center;
   text-align:center;
-  padding:6px;
   cursor:pointer;
   position:relative;
 }
@@ -98,9 +113,9 @@ h1{
   transform:translateX(-50%);
   background:var(--midnight);
   color:white;
-  padding:6px 8px;
+  padding:5px 7px;
   border-radius:6px;
-  font-size:11px;
+  font-size:10px;
   white-space:nowrap;
 }
 </style>
@@ -110,7 +125,7 @@ h1{
 
 <h1>Malla Curricular – Medicina Veterinaria y Zootecnia</h1>
 
-<div id="container"></div>
+<div class="timeline" id="timeline"></div>
 
 <script>
 const semesters = [
@@ -127,12 +142,11 @@ const semesters = [
 ];
 
 const progress = JSON.parse(localStorage.getItem("mvzProgress")||"{}");
+const timeline = document.getElementById("timeline");
 
 function save(){
   localStorage.setItem("mvzProgress",JSON.stringify(progress));
 }
-
-const container=document.getElementById("container");
 
 for(let year=0; year<5; year++){
   const yearDiv=document.createElement("div");
@@ -142,11 +156,11 @@ for(let year=0; year<5; year++){
   const grid=document.createElement("div");
   grid.className="year-grid";
 
-  for(let s=0; s<2; s++){
+  for(let s=0;s<2;s++){
     const semIndex=year*2+s;
     const sem=document.createElement("div");
     sem.className="semester";
-    sem.innerHTML=`<h3>Semestre ${semIndex+1}</h3>`;
+    sem.innerHTML=`<h3>Sem ${semIndex+1}</h3>`;
 
     const courses=document.createElement("div");
     courses.className="courses";
@@ -159,8 +173,7 @@ for(let year=0; year<5; year++){
       if(progress[course]) c.classList.add("approved");
 
       if(semIndex>0 && !progress[course]){
-        const prev=semesters[semIndex-1];
-        if(!prev.every(p=>progress[p])){
+        if(!semesters[semIndex-1].every(p=>progress[p])){
           c.classList.add("locked");
           c.dataset.tooltip="Debe aprobar el semestre anterior";
         }
@@ -181,7 +194,7 @@ for(let year=0; year<5; year++){
   }
 
   yearDiv.appendChild(grid);
-  container.appendChild(yearDiv);
+  timeline.appendChild(yearDiv);
 }
 </script>
 
