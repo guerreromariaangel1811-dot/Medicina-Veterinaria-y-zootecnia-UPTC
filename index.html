@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Malla Curricular MVZ</title>
+
+<style>
+:root{
+  --dark-green:#0A3323;
+  --moss-green:#839958;
+  --beige:#F7F4D5;
+  --rosy-brown:#D3968C;
+  --midnight-green:#105666;
+}
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:var(--beige);
+}
+
+h1{
+  text-align:center;
+  color:var(--dark-green);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap:10px;
+  padding:20px;
+}
+
+.semester{
+  background:var(--moss-green);
+  border-radius:8px;
+  padding:10px;
+}
+
+.semester h2{
+  font-size:14px;
+  text-align:center;
+  color:white;
+}
+
+.course{
+  background:white;
+  padding:8px;
+  margin:6px 0;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+  position:relative;
+  border:2px solid transparent;
+}
+
+.course.approved{
+  background:var(--rosy-brown);
+  color:white;
+  text-decoration:line-through;
+}
+
+.course.locked{
+  background:#ccc;
+  cursor:not-allowed;
+  color:#555;
+}
+
+.course.locked:hover::after{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:110%;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--midnight-green);
+  color:white;
+  padding:6px;
+  border-radius:6px;
+  font-size:11px;
+  white-space:nowrap;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Malla Curricular – Medicina Veterinaria y Zootecnia</h1>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const semesters = [
+  ["Cátedra Universidad y Entorno","Competencias Comunicativas","Biología General","Bioquímica Aplicada I","Introducción a las Ciencias Agrarias"],
+  ["Socio Humanística I","Suelos","Agroecología","Agrostología","Anatomía Veterinaria I","Bioquímica Aplicada II"],
+  ["Ética y Política","Socio Humanística II","Economía Agraria","Anatomía Veterinaria II","Histología y Embriología Veterinaria","Genética y Mejoramiento Animal"],
+  ["Metodología de la Investigación","Administración de Empresas Agropecuarias","Fisiología Veterinaria I","Inmunología Veterinaria","Microbiología y Enfermedades Microbianas Veterinarias","Parasitología y Enfermedades Parasitarias Veterinarias"],
+  ["Desarrollo y Extensión Rural","Mercadeo Agropecuario","Epidemiología Veterinaria","Fisiología Veterinaria II","Patología Veterinaria General","Fundamentos de Nutrición Animal"],
+  ["Formulación y Evaluación de Proyectos","Bioestadística y Diseño Experimental","Semiología Veterinaria","Laboratorio Clínico Veterinario","Salud Pública y Zoonosis","Alimentos y Alimentación Animal"],
+  ["Producción Animal y Medio Ambiente","Agroindustria Alimentaria","Farmacología Veterinaria","Patología Sistémica Veterinaria","Electiva I"],
+  ["Medicina y Producción de Animales de Granja","Terapéutica y Toxicología Veterinaria","Electiva II","Andrología Veterinaria","Cirugía Veterinaria"],
+  ["Imágenes Diagnósticas en Veterinaria","Medicina y Producción Equina","Medicina y Producción de Caninos y Felinos","Medicina y Producción Acuícola","Electiva III","Electiva IV"],
+  ["Rotación Clínica de Grandes Animales","Rotación Clínica de Pequeños Animales","Rotación en Granjas"]
+];
+
+const prereq = {};
+semesters.forEach((s,i)=>{
+  if(i>0){
+    s.forEach(c=> prereq[c]=semesters[i-1]);
+  }
+});
+
+const grid=document.getElementById("grid");
+const progress=JSON.parse(localStorage.getItem("mvzProgress")||"{}");
+
+function save(){
+  localStorage.setItem("mvzProgress",JSON.stringify(progress));
+}
+
+function canUnlock(course){
+  if(!prereq[course]) return true;
+  return prereq[course].every(c=>progress[c]);
+}
+
+semesters.forEach((semester,i)=>{
+  const col=document.createElement("div");
+  col.className="semester";
+  col.innerHTML=`<h2>Semestre ${i+1}</h2>`;
+
+  semester.forEach(course=>{
+    const div=document.createElement("div");
+    div.className="course";
+    div.textContent=course;
+
+    if(progress[course]) div.classList.add("approved");
+
+    if(!canUnlock(course) && !progress[course]){
+      div.classList.add("locked");
+      div.dataset.tooltip="Debe aprobar: "+prereq[course].join(", ");
+    }
+
+    div.onclick=()=>{
+      if(div.classList.contains("locked")) return;
+      progress[course]=!progress[course];
+      save();
+      location.reload();
+    };
+
+    col.appendChild(div);
+  });
+
+  grid.appendChild(col);
+});
+</script>
+
+</body>
+</html>
