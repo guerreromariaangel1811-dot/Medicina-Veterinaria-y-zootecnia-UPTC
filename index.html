@@ -6,64 +6,75 @@
 
 <style>
 :root{
-  --dark-green:#0A3323;
-  --moss-green:#839958;
+  --midnight:#105666;
   --beige:#F7F4D5;
-  --rosy-brown:#D3968C;
-  --midnight-green:#105666;
+  --rosy:#D3968C;
+  --soft-gray:#E5E5E5;
 }
 
 body{
   margin:0;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background:var(--beige);
 }
 
 h1{
   text-align:center;
-  color:var(--dark-green);
+  color:var(--midnight);
+  margin:20px 0;
 }
 
 .grid{
   display:grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap:10px;
+  grid-template-columns: repeat(10, minmax(180px,1fr));
+  gap:16px;
   padding:20px;
 }
 
 .semester{
-  background:var(--moss-green);
-  border-radius:8px;
+  background:white;
+  border:2px solid var(--midnight);
+  border-radius:12px;
   padding:10px;
 }
 
 .semester h2{
-  font-size:14px;
   text-align:center;
-  color:white;
+  font-size:14px;
+  color:var(--midnight);
+  border-bottom:1px solid var(--midnight);
+  padding-bottom:6px;
+  margin-bottom:10px;
 }
 
 .course{
-  background:white;
+  background:#ffffff;
   padding:8px;
-  margin:6px 0;
-  border-radius:6px;
-  cursor:pointer;
+  margin-bottom:8px;
+  border-radius:8px;
   font-size:13px;
+  cursor:pointer;
+  border:1.5px solid var(--midnight);
+  transition:all 0.2s ease;
   position:relative;
-  border:2px solid transparent;
+}
+
+.course:hover{
+  background:#eef6f7;
 }
 
 .course.approved{
-  background:var(--rosy-brown);
+  background:var(--rosy);
   color:white;
   text-decoration:line-through;
+  border-color:var(--rosy);
 }
 
 .course.locked{
-  background:#ccc;
+  background:var(--soft-gray);
+  color:#777;
   cursor:not-allowed;
-  color:#555;
+  border-color:#bbb;
 }
 
 .course.locked:hover::after{
@@ -72,9 +83,9 @@ h1{
   bottom:110%;
   left:50%;
   transform:translateX(-50%);
-  background:var(--midnight-green);
+  background:var(--midnight);
   color:white;
-  padding:6px;
+  padding:6px 8px;
   border-radius:6px;
   font-size:11px;
   white-space:nowrap;
@@ -90,16 +101,16 @@ h1{
 
 <script>
 const semesters = [
-  ["Cátedra Universidad y Entorno","Competencias Comunicativas","Biología General","Bioquímica Aplicada I","Introducción a las Ciencias Agrarias"],
-  ["Socio Humanística I","Suelos","Agroecología","Agrostología","Anatomía Veterinaria I","Bioquímica Aplicada II"],
-  ["Ética y Política","Socio Humanística II","Economía Agraria","Anatomía Veterinaria II","Histología y Embriología Veterinaria","Genética y Mejoramiento Animal"],
-  ["Metodología de la Investigación","Administración de Empresas Agropecuarias","Fisiología Veterinaria I","Inmunología Veterinaria","Microbiología y Enfermedades Microbianas Veterinarias","Parasitología y Enfermedades Parasitarias Veterinarias"],
-  ["Desarrollo y Extensión Rural","Mercadeo Agropecuario","Epidemiología Veterinaria","Fisiología Veterinaria II","Patología Veterinaria General","Fundamentos de Nutrición Animal"],
-  ["Formulación y Evaluación de Proyectos","Bioestadística y Diseño Experimental","Semiología Veterinaria","Laboratorio Clínico Veterinario","Salud Pública y Zoonosis","Alimentos y Alimentación Animal"],
-  ["Producción Animal y Medio Ambiente","Agroindustria Alimentaria","Farmacología Veterinaria","Patología Sistémica Veterinaria","Electiva I"],
-  ["Medicina y Producción de Animales de Granja","Terapéutica y Toxicología Veterinaria","Electiva II","Andrología Veterinaria","Cirugía Veterinaria"],
-  ["Imágenes Diagnósticas en Veterinaria","Medicina y Producción Equina","Medicina y Producción de Caninos y Felinos","Medicina y Producción Acuícola","Electiva III","Electiva IV"],
-  ["Rotación Clínica de Grandes Animales","Rotación Clínica de Pequeños Animales","Rotación en Granjas"]
+["Cátedra Universidad y Entorno","Competencias Comunicativas","Biología General","Bioquímica Aplicada I","Introducción a las Ciencias Agrarias"],
+["Socio Humanística I","Suelos","Agroecología","Agrostología","Anatomía Veterinaria I","Bioquímica Aplicada II"],
+["Ética y Política","Socio Humanística II","Economía Agraria","Anatomía Veterinaria II","Histología y Embriología Veterinaria","Genética y Mejoramiento Animal"],
+["Metodología de la Investigación","Administración de Empresas Agropecuarias","Fisiología Veterinaria I","Inmunología Veterinaria","Microbiología y Enfermedades Microbianas Veterinarias","Parasitología y Enfermedades Parasitarias Veterinarias"],
+["Desarrollo y Extensión Rural","Mercadeo Agropecuario","Epidemiología Veterinaria","Fisiología Veterinaria II","Patología Veterinaria General","Fundamentos de Nutrición Animal"],
+["Formulación y Evaluación de Proyectos","Bioestadística y Diseño Experimental","Semiología Veterinaria","Laboratorio Clínico Veterinario","Salud Pública y Zoonosis","Alimentos y Alimentación Animal"],
+["Producción Animal y Medio Ambiente","Agroindustria Alimentaria","Farmacología Veterinaria","Patología Sistémica Veterinaria","Electiva I"],
+["Medicina y Producción de Animales de Granja","Terapéutica y Toxicología Veterinaria","Electiva II","Andrología Veterinaria","Cirugía Veterinaria"],
+["Imágenes Diagnósticas en Veterinaria","Medicina y Producción Equina","Medicina y Producción de Caninos y Felinos","Medicina y Producción Acuícola","Electiva III","Electiva IV"],
+["Rotación Clínica de Grandes Animales","Rotación Clínica de Pequeños Animales","Rotación en Granjas"]
 ];
 
 const prereq = {};
@@ -135,7 +146,7 @@ semesters.forEach((semester,i)=>{
 
     if(!canUnlock(course) && !progress[course]){
       div.classList.add("locked");
-      div.dataset.tooltip="Debe aprobar: "+prereq[course].join(", ");
+      div.dataset.tooltip="Debe aprobar el semestre anterior";
     }
 
     div.onclick=()=>{
