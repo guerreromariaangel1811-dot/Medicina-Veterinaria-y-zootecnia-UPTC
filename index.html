@@ -14,81 +14,53 @@
 
 body{
   margin:0;
-  font-family:"Segoe UI", sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background:var(--beige);
 }
 
 h1{
   text-align:center;
   color:var(--midnight);
-  margin:16px 0;
+  margin:20px 0;
 }
 
-/* CONTENEDOR HORIZONTAL */
-.timeline{
-  display:flex;
-  gap:20px;
+.grid{
+  display:grid;
+  grid-template-columns: repeat(10, minmax(180px,1fr));
+  gap:16px;
   padding:20px;
-  overflow-x:auto;
 }
 
-/* AÑO */
-.year{
-  min-width:260px;
+.semester{
   background:white;
-  border:2.5px solid var(--midnight);
-  border-radius:14px;
+  border:2px solid var(--midnight);
+  border-radius:12px;
   padding:10px;
 }
 
-.year h2{
+.semester h2{
   text-align:center;
+  font-size:14px;
   color:var(--midnight);
-  font-size:15px;
-  margin-bottom:8px;
-}
-
-/* DOS SEMESTRES POR AÑO */
-.year-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-/* SEMESTRE */
-.semester{
-  border:1.5px solid var(--midnight);
-  border-radius:10px;
-  padding:6px;
-}
-
-.semester h3{
-  font-size:12px;
-  text-align:center;
-  color:var(--midnight);
-  margin-bottom:6px;
-}
-
-/* CUADROS */
-.courses{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:6px;
+  border-bottom:1px solid var(--midnight);
+  padding-bottom:6px;
+  margin-bottom:10px;
 }
 
 .course{
-  aspect-ratio:1/1;
-  background:white;
-  border:1.5px solid var(--midnight);
+  background:#ffffff;
+  padding:8px;
+  margin-bottom:8px;
   border-radius:8px;
-  font-size:10.5px;
-  padding:4px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
+  font-size:13px;
   cursor:pointer;
+  border:1.5px solid var(--midnight);
+  transition:all 0.2s ease;
   position:relative;
+}
+
+.course:hover{
+  background:#eef6f7;
 }
 
 .course.approved{
@@ -113,9 +85,9 @@ h1{
   transform:translateX(-50%);
   background:var(--midnight);
   color:white;
-  padding:5px 7px;
+  padding:6px 8px;
   border-radius:6px;
-  font-size:10px;
+  font-size:11px;
   white-space:nowrap;
 }
 </style>
@@ -125,7 +97,7 @@ h1{
 
 <h1>Malla Curricular – Medicina Veterinaria y Zootecnia</h1>
 
-<div class="timeline" id="timeline"></div>
+<div class="grid" id="grid"></div>
 
 <script>
 const semesters = [
@@ -141,61 +113,54 @@ const semesters = [
 ["Rotación Clínica de Grandes Animales","Rotación Clínica de Pequeños Animales","Rotación en Granjas"]
 ];
 
-const progress = JSON.parse(localStorage.getItem("mvzProgress")||"{}");
-const timeline = document.getElementById("timeline");
+const prereq = {};
+semesters.forEach((s,i)=>{
+  if(i>0){
+    s.forEach(c=> prereq[c]=semesters[i-1]);
+  }
+});
+
+const grid=document.getElementById("grid");
+const progress=JSON.parse(localStorage.getItem("mvzProgress")||"{}");
 
 function save(){
   localStorage.setItem("mvzProgress",JSON.stringify(progress));
 }
 
-for(let year=0; year<5; year++){
-  const yearDiv=document.createElement("div");
-  yearDiv.className="year";
-  yearDiv.innerHTML=`<h2>Año ${year+1}</h2>`;
-
-  const grid=document.createElement("div");
-  grid.className="year-grid";
-
-  for(let s=0;s<2;s++){
-    const semIndex=year*2+s;
-    const sem=document.createElement("div");
-    sem.className="semester";
-    sem.innerHTML=`<h3>Sem ${semIndex+1}</h3>`;
-
-    const courses=document.createElement("div");
-    courses.className="courses";
-
-    semesters[semIndex].forEach(course=>{
-      const c=document.createElement("div");
-      c.className="course";
-      c.textContent=course;
-
-      if(progress[course]) c.classList.add("approved");
-
-      if(semIndex>0 && !progress[course]){
-        if(!semesters[semIndex-1].every(p=>progress[p])){
-          c.classList.add("locked");
-          c.dataset.tooltip="Debe aprobar el semestre anterior";
-        }
-      }
-
-      c.onclick=()=>{
-        if(c.classList.contains("locked")) return;
-        progress[course]=!progress[course];
-        save();
-        location.reload();
-      };
-
-      courses.appendChild(c);
-    });
-
-    sem.appendChild(courses);
-    grid.appendChild(sem);
-  }
-
-  yearDiv.appendChild(grid);
-  timeline.appendChild(yearDiv);
+function canUnlock(course){
+  if(!prereq[course]) return true;
+  return prereq[course].every(c=>progress[c]);
 }
+
+semesters.forEach((semester,i)=>{
+  const col=document.createElement("div");
+  col.className="semester";
+  col.innerHTML=`<h2>Semestre ${i+1}</h2>`;
+
+  semester.forEach(course=>{
+    const div=document.createElement("div");
+    div.className="course";
+    div.textContent=course;
+
+    if(progress[course]) div.classList.add("approved");
+
+    if(!canUnlock(course) && !progress[course]){
+      div.classList.add("locked");
+      div.dataset.tooltip="Debe aprobar el semestre anterior";
+    }
+
+    div.onclick=()=>{
+      if(div.classList.contains("locked")) return;
+      progress[course]=!progress[course];
+      save();
+      location.reload();
+    };
+
+    col.appendChild(div);
+  });
+
+  grid.appendChild(col);
+});
 </script>
 
 </body>
